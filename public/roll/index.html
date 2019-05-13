@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Roll Game</title>
+    <link rel="icon" href="https://zilpay.xyz/img/favicon.ico">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="/roll/min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  </head>
+  <body class="bg-secondary">
+
+    <nav class="navbar navbar-light" style="background: #2d3246;">
+      <a class="navbar-brand text-warning" href="/#dapps">
+        Roll game
+      </a>
+
+      <div id="myaddress" class="text-warning"></div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="row justify-content-md-center">
+        <div class="jumbotron rounded shadow-lg mt-5">
+          <div class="alert alert-danger" role="alert">
+            This <a target="_blanck" href="https://viewblock.io/zilliqa/address/0xe8a997e359ac2a1e891dbdf7fc7558623bb0ead2?network=testnet">contract</a> is deployed on the dev-testnet. Don't send mainnet ZILs to this address!
+          </div>
+          <div class="alert alert-warning" role="alert">
+            This <a target="_blanck" href="https://viewblock.io/zilliqa/address/0xe8a997e359ac2a1e891dbdf7fc7558623bb0ead2?network=testnet">smart contract</a>
+            made for fun, do not use in production!!!
+          </div>
+
+          <div class="alert alert-info balance" role="alert"></div>
+
+          <div class="form-group">
+            <label for="formControlRange">Roll:
+              <span id="roll-view">51</span>
+            </label>
+            <input type="range"
+                   min="1"
+                   max="100"
+                   class="form-control-range"
+                   id="formControlRange">
+
+            <div class="row">
+              <div class="col input-group m-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">Win</span>
+                </div>
+                <input type="text" class="form-control" id="winAmount">
+              </div>
+              <div class="col input-group m-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">Amount</span>
+                </div>
+                <input type="text" class="form-control" id="amount">
+              </div>
+            </div>
+            <button type="button"
+                    class="btn btn-success btn-lg mt-3"
+                    onclick="roll()">
+              Roll
+            </button>
+            <div id="spiner" class="spinner-border mb-3 hide" role="status">
+              <span class="sr-only"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <div class="modal fade" id="zilpayModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-dark">
+          <h5 class="modal-title text-warning" id="zilpayModalTitle">ZilPay</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body bg-dark">
+          <div class="row justify-content-md-center">
+              <h1 class="text-center text-warning">Please install <a href="https://zilpay.xyz/">ZilPay</a></h1>
+            <img src="/img/lock.png">
+          </div>
+        </div>
+        <div class="modal-footer bg-dark">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/roll/main.js"></script>
+  </body>
+</html>

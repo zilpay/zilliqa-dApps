@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+	<title>Scilla editro</title>
+	<link rel="shortcut icon" href="https://savant-ide.zilliqa.com/zilfavicon.ico">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</head>
+<body>
+
+	<nav class="navbar navbar-light" style="background: #2d3246;">
+		<a class="navbar-brand text-warning" href="/#dapps">
+			<img src="https://savant-ide.zilliqa.com/static/media/scilla-logo-color-transparent.193e9b62.png" width="30" height="30" alt="">
+			Scilla web IDE and contract deployer
+		</a>
+
+		<button onclick="deploy()" type="button" class="btn btn-primary">Deploy</button>
+	</nav>
+
+	<div class="row">
+			<div id="scilla"
+					 class="col-lg-7"
+					 style="height:800px;"></div>
+			
+			<div id="initJson"
+					 class="col-sm-5"
+					 style="height:800px;"></div>
+	</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js" integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk=" crossorigin="anonymous"></script>
+<script>
+	require.config({ paths: { 'vs': '/scilla-editor/monaco' }});
+	var code = '  scilla_version 0\n\n  (* HelloWorld contract *)\n\n  import ListUtils\n\n  (***************************************************)\n  (*               Associated library                *)\n  (***************************************************)\n  library HelloWorld\n\n  let not_owner_code = Int32 1\n  let set_hello_code = Int32 2\n\n  (***************************************************)\n  (*             The contract definition             *)\n  (***************************************************)\n\n  contract HelloWorld\n  (owner: ByStr20)\n\n  field welcome_msg : String = \"\"\n\n  transition setHello (msg : String)\n    is_owner = builtin eq owner _sender;\n    match is_owner with\n    | False =>\n      e = {_eventname : \"setHello()\"; code : not_owner_code};\n      event e\n    | True =>\n      welcome_msg := msg;\n      e = {_eventname : \"setHello()\"; code : set_hello_code};\n      event e\n    end\n  end\n\n\n  transition getHello ()\n      r <- welcome_msg;\n      e = {_eventname: \"getHello()\"; msg: r};\n      event e\n  end\n        ';
+	var init = [
+    {
+        "vname": "_scilla_version",
+        "type": "Uint32",
+        "value": "0"
+    },
+    {
+        "vname": "owner",
+        "type": "ByStr20",
+        "value": ""
+    },
+    {
+        "vname": "_creation_block",
+        "type": "BNum",
+        "value": "100"
+    }
+	];
+
+	window.addEventListener("load", () => {
+		if (!window.zilPay) {
+			$('.modal-body').html(`
+			<div class="row justify-content-md-center">
+				<img src="https://zilpay.xyz/img/icon.svg" height="300">
+				<h1 class="text-center">please install <a href="https://zilpay.xyz/">ZilPay</a></h1>
+			</div>
+				<pre id="tx" class="text-left"></pre>
+			`);
+			$('#txModal').modal();
+			return null;
+		} else if (!window.zilPay.isEnable) {
+			$('.modal-body').html(`
+			<div class="row justify-content-md-center">
+				<img src="https://zilpay.xyz/img/icon.svg" height="300">
+				<h1 class="text-center">please unlock zilPay</h1>
+			</div>
+				<pre id="tx" class="text-left"></pre>
+			`);
+			$('#txModal').modal();
+		} else {
+			init[1]['value'] = zilPay.defaultAccount.address;
+		}
+
+		zilliqa = new Zilliqa();
+
+		window.zilPay.observableAccount().subscribe(account => {
+			init[1]['value'] = zilPay.defaultAccount.address;
+		});
+	});
+
+	require(['vs/editor/editor.main'], function() {
+
+		monaco.languages.register({
+			id: 'scilla'
+		});
+		monaco.languages.setMonarchTokensProvider('scilla', {
+			keywords: [
+				"send", "event", "match",
+				"with", "end", "fun",
+				"let", "in", "of", "builtin",
+				"accept", "import", "delete",
+				"exists", "type", "Some",
+				"None", "_tag", "_eventname",
+				"Main", "_sender", "_amount",
+				"field", "_this_address",
+				"_recipient", "transition"
+			],
+
+			typeKeywords: [
+				"Uint32", "Int32", "Uint64", "Int64",
+				"Uint128", "Int128", "Uint256", "Int256",
+				"String", "Bool", "Map", "BNum", "Option",
+				"List", "Pair", "Message", "ByStr20",
+				"ByStr32", "ByStr64", "ByStr"
+			],
+
+			operators: [
+				'=', '>', '<', '!', '&', '-', '+', '*', '/',
+				'%', '^'
+			],
+
+			symbols:  /\(!\||\|&\|+\|-\|<\|>\|=\|%\|\/\|*\|\~\|\^\)/,
+
+			escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
+
+			tokenizer: {
+				root: [
+					[/[a-z_$][\w$]*/, { cases: { '@typeKeywords': 'keyword',
+																			'@keywords': 'keyword',
+																			'@default': 'identifier' } }],
+					[/[A-Z][\w\$]*/, 'type.identifier' ],  // to show class names nicely
+					[/[{}()\[\]]/, '@brackets'],
+					[/[<>](?!@symbols)/, '@brackets'],
+					[/@symbols/, { cases: { '@operators': 'operator',
+																	'@default'  : '' } } ],
+					[/@\s*[a-zA-Z_\$][\w\$]*/, { token: 'annotation', log: 'annotation token: $0' }],
+
+					[/0[xX][0-9a-fA-F]+/, 'number.hex'],
+					[/\d+/, 'number'],
+
+					[/[;,.]/, 'delimiter'],
+
+					[/'[^\\']'/, 'string'],
+				],
+			},
+		});
+
+		window.scillaEditor = monaco.editor.create(document.getElementById('scilla'), {
+			theme: 'myCoolTheme',
+			value: code,
+			language: 'scilla',
+			theme: 'vs-dark'
+		});
+		window.jsonEditor = monaco.editor.create(document.getElementById('initJson'), {
+			value: JSON.stringify(init, null, 4),
+			language: 'json'
+		});
+	});
+
+
+</script>
+
+<script>
+	window.deploy = async () => {
+		const code = window.scillaEditor.getValue();
+		const init = JSON.parse(window.jsonEditor.getValue());
+		const zilliqa = new window.Zilliqa();
+		const { units, Long, toChecksumAddress } = zilliqa.utils;
+		const contract = zilliqa.contracts.new(code, init);
+		const myGasPrice = units.toQa('1000', units.Units.Li);
+		const [deployTx, newContract] = await contract.deploy({
+			gasPrice: myGasPrice,
+			gasLimit: Long.fromNumber(10000)
+		});
+		console.log(deployTx);
+		
+		$('#tx').html(JSON.stringify(deployTx, null, 4));
+		$('.modal-title')[0].textContent = toChecksumAddress(newContract.address);
+		$('#txModal').modal();
+	}
+</script>
+
+
+	<footer class="section footer-classic context-dark bg-image" style="background: #2d3246;">
+		<div class="container">
+			<div class="row row-30">
+				<div class="col-md-4 col-xl-5">
+				</div>
+				<div class="col-md-4 col-xl-3 p-3">
+					<h5>Contacts</h5>
+					<ul class="nav-list">
+						<li><a target="_blanck" href="https://t.me/zilpay">Telegram</a></li>
+						<li><a target="_blanck" href="https://github.com/lich666dead/zil-pay/tree/master/dapps/public/scilla-editor">GitHub</a></li>
+						<li><a target="_blanck" href="https://zilpay.xyz/">webSite</a></li>
+						<li><a target="_blanck" href="https://chrome.google.com/webstore/detail/zilpay/klnaejjgbibmhlephnhpmaofohgkpgkd">chrome</a></li>
+						<li><a target="_blanck" href="https://addons.mozilla.org/en-GB/firefox/addon/zilpay/">firefox</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</footer>
+
+	<div class="modal fade bd-example-modal-xl" id="txModal" tabindex="-1" role="dialog" aria-labelledby="txModal" aria-hidden="true">
+		<div class="modal-dialog modal-xl" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="contractAddress">Modal title</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<pre id="tx" class="text-left"></pre>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>

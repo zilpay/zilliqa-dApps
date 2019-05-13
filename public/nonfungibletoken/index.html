@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>NonfungibleToken creater</title>
+  <link rel="icon" href="https://zilpay.xyz/img/favicon.ico">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</head>
+<body class="bg-secondary">
+  <nav class="navbar navbar-light" style="background: #2d3246;">
+    <a class="navbar-brand text-warning" href="/#dapps">
+      NonfungibleToken
+    </a>
+  </nav>
+
+  <div class="container mt-5">
+    <div class="row justify-content-md-center">
+      <div class="jumbotron jumbotron-fluid rounded shadow-lg">
+        <div class="container">
+          <h1 class="display-4">Non-FungibleToken creator</h1>
+          <p class="lead">This dApp is a form to create a NonfungibleToken token.</p>
+          <p class="lead">This token is implementation of ERC721 non-fungible tokens.</p>
+          <div class="pt-3">
+            <div class="form-group">
+              <label for="contractOwner">Contract Owner</label>
+              <input type="text" class="form-control" id="contractOwner" placeholder="Enter contract 0wner">
+              <small id="emailHelp" class="form-text text-muted">It's value should be a Zilliqa address.</small>
+            </div>
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input type="text" class="form-control" id="name" placeholder="name contract">
+              <small id="emailHelp" class="form-text text-muted">It's value should be the token name.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-check-label" for="symbol">Token symbol</label>
+              <input type="text" class="form-control" id="symbol">
+            </div>
+            <button onclick="deploy()" type="button" class="btn btn-primary">Create</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="section footer-classic context-dark mt-5" style="background: #2d3246;">
+    <div class="container">
+      <div class="row row-30">
+        <div class="col-md-4 col-xl-5">
+        </div>
+        <div class="col-md-4 col-xl-3 p-3">
+          <h5>Contacts</h5>
+          <ul class="nav-list">
+            <li><a target="_blanck" href="https://t.me/zilpay">Telegram</a></li>
+            <li><a target="_blanck" href="https://github.com/lich666dead/zil-pay/tree/master/dapps/public/nonfungibletoken">GitHub</a></li>
+            <li><a target="_blanck" href="https://zilpay.xyz/">webSite</a></li>
+            <li><a target="_blanck" href="https://chrome.google.com/webstore/detail/zilpay/klnaejjgbibmhlephnhpmaofohgkpgkd">chrome</a></li>
+            <li><a target="_blanck" href="https://addons.mozilla.org/en-GB/firefox/addon/zilpay/">firefox</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    window.code = 'scilla_version 0\n\n(***************************************************)\n(*               Associated library                *)\n(***************************************************)\nimport BoolUtils\nlibrary NonfungibleToken\n\nlet one_msg = \n  fun (msg : Message) => \n  let nil_msg = Nil {Message} in\nCons {Message} msg nil_msg\n\n(* Checks and see if an address is a contract owner *)\nlet checkContractOwner =\n    fun (msgSender: ByStr20) => \n    fun (contractOwner: ByStr20) =>\n        builtin eq msgSender contractOwner\n\n(* Checks and see if an address is a token owner *)\nlet isTokenOwner = \n    fun (msgSender: ByStr20) =>\n    fun (tokenId: Uint256) =>\n    fun (tokenOwnerMap_tmp : Map (Uint256) (ByStr20)) =>\n        let tokenOwner = builtin get tokenOwnerMap_tmp tokenId in\n        match tokenOwner with\n        | None => False\n        | Some val =>\n            builtin eq val msgSender\n        end \n\n(* Checks if a given address is approved to make txn the given tokenID *)\n(* Not to be confused with isApprovedForAll                            *)\nlet isApproved = \n    fun (msgSender: ByStr20) =>\n    fun (tokenID: Uint256) =>\n    fun (approvalMap_tmp: Map (Uint256) (ByStr20)) =>\n        let val = builtin get approvalMap_tmp tokenID in\n        match val with\n        | None => False \n        | Some val =>\n            builtin eq val msgSender\n        end\n\n(* Checks if an message sender is approved by a given owner. (i.e. operator) *)\nlet isApprovedForAll = \n    fun (msgSender: ByStr20) =>\n    fun (tokenOwner: ByStr20) =>\n    fun (operatorMap: Map (ByStr20) (Map (ByStr20) (Bool))) =>\n        let m = builtin get operatorMap tokenOwner in\n        match m with\n        | None => False\n            (* owner did not assign anyone to the approval mapping *)\n        | Some val =>\n            (* val is of type Map (ByStr20) (Bool) *)\n            let check_list = builtin get val msgSender in\n            match check_list with\n            | None => False\n            | Some is_sender_approved =>\n                (* check if sender has access rights *)\n                match is_sender_approved with\n                | True => True\n                | False => False\n                end\n            end\n        end\n\n(* Check if a sender is an operator of the owner, approved for the given ID *)\n(* or is the owner of the token *)\nlet isApprovedOrOwner =\n    fun (isOwner: Bool) =>\n    fun (isApproved: Bool) =>\n    fun (isApprovedForAll: Bool) =>\n        let isOwnerOrApproved =  orb isOwner isApproved in\n        orb isOwnerOrApproved isApprovedForAll\n\n(* Error events *)\nlet makeErrorEvent =\n    fun (location: String) =>\n    fun (errorCode: Uint32) =>\n        {_eventname: \"Error\"; raisedAt: location; code: errorCode }\n\n(* Error codes *)\nlet code_success = Uint32 0\nlet code_failure = Uint32 1\nlet code_not_authorized = Uint32 2\nlet code_not_found = Uint32 4\nlet code_bad_request = Uint32 5\nlet code_token_exists = Uint32 6\nlet code_unexpected_error = Uint32 9\n\n\n(***************************************************)\n(*             The contract definition             *)\n(***************************************************)\n\ncontract NonfungibleToken\n(contractOwner : ByStr20,\n name : String,\n symbol: String\n)\n\n(* mutable fields *)\n\n(* Mapping between tokenId to token owner *)\nfield tokenOwnerMap: Map Uint256 ByStr20 = Emp Uint256 ByStr20\n(* Mapping from owner to number of owned tokens *)\nfield ownedTokenCount: Map ByStr20 Uint256 = Emp ByStr20 Uint256\n\n(* Mapping between tokenId to approved address *)\n(* @dev: There can only be one approved address per token at a given time. *)\nfield tokenApprovals: Map Uint256 ByStr20 = Emp Uint256 ByStr20\n\n(* Mapping from owner to operator approvals  *)\nfield operatorApprovals: Map ByStr20 (Map ByStr20 Bool) \n                            = Emp ByStr20 (Map ByStr20 Bool)\n\n(* immutable field *)\n\n(* @notice Count all NFTs assigned to an owner *)\ntransition balanceOf(address: ByStr20) \n    optionBal <- ownedTokenCount[address];\n    balance = match optionBal with\n    | Some bal => bal\n    | None => Uint256 0\n    end;\n    e = {_eventname: \"balanceOf\"; bal: balance};\n    event e\nend\n\n\n(* Get the owner of a particular tokenId *)\ntransition ownerOf(tokenId: Uint256) \n    someVal <- tokenOwnerMap[tokenId];\n    match someVal with\n    | Some val =>\n        e = {_eventname: \"ownerOf\"; id: tokenId; owner: val};\n        event e\n    | None =>\n        e = let raisedAt = \"ownerOf\" in makeErrorEvent raisedAt code_not_found;\n        event e\n    end\nend\n\n(* @dev:    Mint new tokens. Only `contractOwner` can mint the token*)\n(* @param:  to - address of the token recipient                     *)\n(* @param:  tokenId - token id of the new token                     *)\n(* Returns error message code_token_exist if token exists           *)\ntransition mint(to: ByStr20, tokenId: Uint256)\n\n    (* Sender must be the contract owner *)\n    isAuthorized = checkContractOwner contractOwner _sender;\n    match isAuthorized with\n    | True =>\n        currentTokenOwnerMap <- tokenOwnerMap;\n        (* Check if token exists *)\n        tokenExist <- exists tokenOwnerMap[tokenId];\n        match tokenExist with\n        | True =>\n            (* Token exists, return error code *)\n            e = let raisedAt = \"mint\" in makeErrorEvent raisedAt code_token_exists;\n            event e\n        | False =>\n            (* Mint token *)\n            tokenOwnerMap[tokenId] := to;\n            (* add to owner count *)\n            userCnt <- ownedTokenCount[to];\n            match userCnt with\n            | Some val =>\n                (* Append to existing results *)\n                newVal= let one = Uint256 1 in builtin add val one;\n                ownedTokenCount[to] := newVal\n            | None =>\n                (* User does not have existing tokens *)\n                newVal = Uint256 1;\n                ownedTokenCount[to] := newVal\n            end;\n\n            (* Emit success event *)\n            e = {_eventname: \"Mint successful\"; by: _sender; recipient: to; token: tokenId};\n            event e\n        end\n    | False =>\n        (* Unauthorized transaction - sender is not the contract owner*)\n        e = let raisedAt = \"mint\" in makeErrorEvent raisedAt code_not_authorized;\n        event e\n    end\n\n    \nend\n\n(* @dev Transfer the ownership of a given token ID to another address *)\n(* @param from:     Current owner of the token                        *)\n(* @param to:       Recipient address of the token                    *)\n(* @param tokenId   uint256 id of the token to be transferred         *)\ntransition transferFrom(from: ByStr20, to: ByStr20, tokenId: Uint256)\n    copy_tokenOwnerMap <- tokenOwnerMap;\n    copy_tokenApprovals <- tokenApprovals;\n    copy_operatorApproval <- operatorApprovals;\n\n    (* Get tokenOwner ByStr20 *)\n    getTokenOwner <- tokenOwnerMap[tokenId];\n    match getTokenOwner with\n    | None =>\n        (* Token not found *)\n        e = let raisedAt = \"transferFrom\" in makeErrorEvent raisedAt code_not_found;\n        event e\n        \n    | Some tokenOwner =>\n        \n        (* Libary functions to check for conditions *)\n        checkOwner = isTokenOwner _sender tokenId copy_tokenOwnerMap;\n        checkApproved = isApproved _sender tokenId copy_tokenApprovals;\n        checkApprovedForAll = isApprovedForAll _sender tokenOwner copy_operatorApproval;\n\n        (* Checks if the `from` is indeed the owner of the token *)\n        isFromTokenOwner = builtin eq tokenOwner from;\n        match isFromTokenOwner with\n        | False =>\n            (* From address is not the same as the tokenOwner    *)\n            e = let raisedAt = \"transferFrom\" in makeErrorEvent raisedAt code_bad_request;\n            event e\n        | True => \n            (* isApprovedOrOwner checks if any of the three conditions are met *)\n            isAuthorized = isApprovedOrOwner checkOwner checkApproved checkApprovedForAll;\n\n            match isAuthorized with\n            | True =>\n                (* Remove from Approval *)\n                match checkApproved with\n                | True =>\n                    (* Remove entry from approvals at the token level *)\n                    delete tokenApprovals[tokenId] \n                | False =>\n                end;\n\n                (* Change tokenOwnerMap *)\n                tokenOwnerMap[tokenId] := to;\n\n                (* Change Count *)\n                curr_otc <- ownedTokenCount;\n\n                (*subtract one from previous token owner *)\n                somePrevBal <- ownedTokenCount[from];\n                match somePrevBal with\n                | Some prevBal =>\n                    newBal  = let one = Uint256 1 in builtin sub prevBal one;\n                    ownedTokenCount[from] := newBal\n                | None =>\n                    e = let raisedAt = \"transferFrom\" in makeErrorEvent raisedAt code_unexpected_error;\n                    event e\n                end;\n\n                (* add one to the new token owner *)\n                userCnt <- ownedTokenCount[to];\n                (* Calculate the new token count value for recipient *)\n                newVal = let one = Uint256 1 in match userCnt with\n                | Some val =>\n                    (* Add to existing value *)\n                    builtin add val one\n                | None => one\n                end;\n                ownedTokenCount[to] := newVal; \n                e = {_eventname: \"transferFrom successful\"; from: _sender; recipient: to; token: tokenId}; \n                event e\n            | False =>\n                (* Unauthorized transaction *)\n                e = let raisedAt = \"transferFrom\" in makeErrorEvent raisedAt code_not_authorized;\n                event e\n            end\n        end\n    end\nend\n\n(* @dev: Approves another address to transfer the given token ID                *)\n(* - There can only be one approved address per token at a given time           *)\n(* - Absence of entry in tokenApproval indicates there is no approved address   *)\n(* param: to ByStr20 to be approved for the given token id                      *)\n(* param: tokenId uint256 id of the token to be apporved                        *)\n\n\ntransition approve(to: ByStr20, tokenId: Uint256)\n\n    copy_tokenOwnerMap <- tokenOwnerMap;\n    copy_operatorApproval <- operatorApprovals;\n\n    (* Get tokenOwner ByStr20 *)\n    getTokenOwner <- tokenOwnerMap[tokenId];\n    match getTokenOwner with\n    | None =>\n        (* Token not found *)\n        e = let raisedAt = \"approve\" in makeErrorEvent raisedAt code_not_found;\n        event e\n    | Some tokenOwner =>\n        checkApprovedForAll = isApprovedForAll _sender tokenOwner copy_operatorApproval;\n        checkOwner = isTokenOwner _sender tokenId copy_tokenOwnerMap;\n        isAuthorized = orb checkApprovedForAll checkOwner;\n        match isAuthorized with\n        | True =>\n            (* add to token approval mapping *)\n            tokenApprovals[tokenId] := to;\n            (* Emit event *)\n            e = {_eventname: \"Approve successful\"; from: _sender; approvedTo: to; token: tokenId};\n            event e\n        | False =>\n            (* Unauthorized transaction *)\n            e = let raisedAt = \"approve\" in makeErrorEvent raisedAt code_not_authorized;\n            event e\n        end\n    end\nend\n\n(* @dev: sets or unsets the approval of a given operator                *)\n(* @param: address to be set or unset as operator                       *)\n(* @param: approved - status of the approval to be set                  *)\n\ntransition setApprovalForAll(to: ByStr20, approved: Bool)\n\n    copy_operatorApproval <- operatorApprovals;\n    (* Checks if the _sender is approving himself *)\n    isValidOperation = let check = builtin eq _sender to in negb check;\n    (* require _sender is not approving himself *)\n    match isValidOperation with\n    | True =>\n        (* Check if sender has an existing record on the operatorApproval *)\n        operatorApprovals[_sender][to] := approved;\n        (* Stringify boolean value to be emitted in the event *)\n        approvedStr = bool_to_string approved;\n        e = {_eventname: \"setApprovalForAll successful\"; from: _sender; recipient: to; status: approvedStr};\n        event e\n    | False =>\n        e = let raisedAt = \"setApprovalForAll\" in makeErrorEvent raisedAt code_not_authorized;\n        event e\n    end\nend\n';
+  </script>
+
+  <script>
+  var address = '';
+
+  window.addEventListener("load", () => {
+    if (!window.zilPay) {
+      $('.modal-body').html(`
+      <div class="row justify-content-md-center">
+        <img src="https://zilpay.xyz/img/icon.svg" height="300">
+        <h1 class="text-center">please install <a href="https://zilpay.xyz/">ZilPay</a></h1>
+      </div>
+        <pre id="tx" class="text-left"></pre>
+      `);
+      $('#txModal').modal();
+      return null;
+    } else if (!window.zilPay.isEnable) {
+      $('.modal-body').html(`
+      <div class="row justify-content-md-center">
+        <img src="https://zilpay.xyz/img/icon.svg" height="300">
+        <h1 class="text-center">please unlock zilPay</h1>
+      </div>
+        <pre id="tx" class="text-left"></pre>
+      `);
+      $('#txModal').modal();
+    }
+
+    window.zilPay.observableAccount().subscribe(account => {
+      $('#contractOwner')[0].value = window.zilPay.defaultAccount.address;
+    });
+
+  });
+
+  window.deploy = async () => {
+    const zilliqa = new window.Zilliqa();
+    const { units, Long, toChecksumAddress } = zilliqa.utils;
+    const code = window.code;
+    const init = [
+      {
+          "vname": "_scilla_version",
+          "type": "Uint32",
+          "value": "0"
+      },
+      {
+          "vname": "contractOwner",
+          "type": "ByStr20",
+          "value":  $('#contractOwner')[0].value
+      },
+      {
+          "vname": "name",
+          "type": "String",
+          "value": $('#name')[0].value
+      },
+      {
+          "vname": "symbol",
+          "type": "String",
+          "value": $('#symbol')[0].value
+      },
+      {
+        "vname": "_creation_block",
+        "type": "BNum",
+        "value": "100"
+      }
+    ];
+    const contract = zilliqa.contracts.new(code, init);
+    const myGasPrice = units.toQa('1000', units.Units.Li);
+    const [deployTx, newContract] = await contract.deploy({
+      gasPrice: myGasPrice,
+      gasLimit: Long.fromNumber(10000)
+    });
+    $('#tx').html(JSON.stringify(deployTx, null, 4));
+    console.log(deployTx);
+    $('#txModal').modal();
+  }
+  </script>
+
+  <div class="modal fade bd-example-modal-xl" id="txModal" tabindex="-1" role="dialog" aria-labelledby="txModal" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="contractAddress">Transaction</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <pre id="tx" class="text-left"></pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

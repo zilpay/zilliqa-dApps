@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>FungibleToken creater</title>
+  <link rel="icon" href="https://zilpay.xyz/img/favicon.ico">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</head>
+<body class="bg-secondary">
+  <nav class="navbar navbar-light" style="background: #2d3246;">
+    <a class="navbar-brand text-warning" href="/#dapps">
+      FungibleToken
+    </a>
+  </nav>
+
+  <div class="container mt-5">
+    <div class="row justify-content-md-center">
+      <div class="jumbotron jumbotron-fluid rounded shadow-lg">
+        <div class="container">
+          <h1 class="display-4">FungibleToken creator</h1>
+          <p class="lead">This dApp is a form to create fungible tokens.</p>
+          <p class="lead">This token implements a fungible token interface a la ERC20.</p>
+
+          <div class="pt-3">
+            <div class="form-group">
+              <label for="contractOwner">Contract owner</label>
+              <input type="text" class="form-control" id="contractOwner" placeholder="Enter contract 0wner">
+              <small id="emailHelp" class="form-text text-muted">It's value should be an Zilliqa address.</small>
+            </div>
+            <div class="form-group">
+              <label for="name">Token name</label>
+              <input type="text" class="form-control" id="name" placeholder="name contract">
+              <small id="emailHelp" class="form-text text-muted">It's value should be the token name.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-check-label" for="symbol">Token symbol</label>
+              <input type="text" class="form-control" id="symbol">
+            </div>
+            <div class="form-group">
+              <label for="total_tokens">Total supply of tokens</label>
+              <input type="number" class="form-control" id="total_tokens" placeholder="total tokens">
+              <small id="emailHelp" class="form-text text-muted">It's value should be the total supply of the tokens.</small>
+            </div>
+            <div class="form-group">
+              <label for="decimals">Decimals</label>
+              <input type="number" class="form-control" id="decimals" value="18">
+            </div>
+            
+            <button onclick="deploy()" type="button" class="btn btn-primary">Create</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="section footer-classic context-dark mt-5" style="background: #2d3246;">
+    <div class="container">
+      <div class="row row-30">
+        <div class="col-md-4 col-xl-5">
+        </div>
+        <div class="col-md-4 col-xl-3 p-3">
+          <h5>Contacts</h5>
+          <ul class="nav-list">
+            <li><a target="_blanck" href="https://t.me/zilpay">Telegram</a></li>
+            <li><a target="_blanck" href="https://github.com/lich666dead/zil-pay/tree/master/dapps/public/fungibletoken">GitHub</a></li>
+            <li><a target="_blanck" href="https://zilpay.xyz/">webSite</a></li>
+            <li><a target="_blanck" href="https://chrome.google.com/webstore/detail/zilpay/klnaejjgbibmhlephnhpmaofohgkpgkd">chrome</a></li>
+            <li><a target="_blanck" href="https://addons.mozilla.org/en-GB/firefox/addon/zilpay/">firefox</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    window.code = `scilla_version 0\n\n(* This contract implements a fungible token interface a la ERC20.*)\n\n(***************************************************)\n(*               Associated library                *)\n(***************************************************)\nlibrary FungibleToken\n\nlet min_int =\n  fun (a : Uint128) => fun (b : Uint128) =>\n  let alt = builtin lt a b in\n  match alt with\n  | True =>\n    a\n  | False =>\n    b\n  end\n\nlet le_int =\n  fun (a : Uint128) => fun (b : Uint128) =>\n    let x = builtin lt a b in\n    match x with\n    | True => True\n    | False =>\n      let y = builtin eq a b in\n      match y with\n      | True => True\n      | False => False\n      end\n    end\n    \n\n(***************************************************)\n(*             The contract definition             *)\n(***************************************************)\n\ncontract FungibleToken\n(owner : ByStr20,\n total_tokens : Uint128,\n decimals : Uint32,\n name : String,\n symbol : String)\n\n(* Initial balance is not stated explicitly: it's initialized when creating the contract. *)\n\nfield balances : Map ByStr20 Uint128 =\n  let m = Emp ByStr20 Uint128 in\n    builtin put m owner total_tokens\nfield allowed : Map ByStr20 (Map ByStr20 Uint128) = Emp ByStr20 (Map ByStr20 Uint128)\n\ntransition BalanceOf (tokenOwner : ByStr20)\n  bal <- balances[tokenOwner];\n  match bal with\n  | Some v =>\n\te = {_eventname : \"BalanceOf\"; address : tokenOwner; balance : v};\n\tevent e\n  | None =>\n\te = {_eventname : \"BalanceOf\"; address : tokenOwner; balance : Uint128 0};\n    event e\n  end\nend\n\ntransition TotalSupply ()\n  e = {_eventname : \"TotalSupply\"; caller : _sender; balance : total_tokens};\n  event e\nend\n\ntransition Transfer (to : ByStr20, tokens : Uint128)\n  bal <- balances[_sender];\n  match bal with\n  | Some b =>\n    can_do = le_int tokens b;\n    match can_do with\n    | True =>\n      (* subtract tokens from _sender and add it to \"to\" *)\n      new_sender_bal = builtin sub b tokens;\n      balances[_sender] := new_sender_bal;\n\n      (* Adds tokens to \"to\" address *)\n      to_bal <- balances[to];\n      new_to_bal = match to_bal with\n      | Some x => builtin add x tokens\n      | None => tokens\n      end;\n\n  \t  balances[to] := new_to_bal;\n      e = {_eventname : \"TransferSuccess\"; sender : _sender; recipient : to; amount : tokens};\n      event e\n    | False =>\n      (* balance not sufficient. *)\n      e = {_eventname : \"TransferFailure\"; sender : _sender; recipient : to; amount : Uint128 0};\n      event e\n    end\n  | None =>\n    (* no balance record, can't transfer *)\n  \te = {_eventname : \"TransferFailure\"; sender : _sender; recipient : to; amount : Uint128 0};\n    event e\n  end\nend\n\ntransition TransferFrom (from : ByStr20, to : ByStr20, tokens : Uint128)\n  bal <- balances[from];\n  (* Check if _sender has been authorized by \"from\" *)\n  sender_allowed_from <- allowed[from][_sender];\n  match bal with\n  | Some a =>\n    match sender_allowed_from with\n    | Some b =>\n        (* We can only transfer the minimum of available or authorized tokens *)\n        t = min_int a b;\n        can_do = le_int tokens t;\n        match can_do with\n        | True =>\n            (* tokens is what we should subtract from \"from\" and add to \"to\" *)\n            new_from_bal = builtin sub a tokens;\n            balances[from] := new_from_bal;\n            to_bal <- balances[to];\n            match to_bal with\n            | Some tb =>\n                new_to_bal = builtin add tb tokens;\n                balances[to] := new_to_bal\n            | None =>\n                (* \"to\" has no balance. So just set it to tokens *)\n                balances[to] := tokens\n            end;\n            (* reduce \"allowed\" by \"tokens\" *)\n            new_allowed = builtin sub b tokens;\n            allowed[from][_sender] := new_allowed;\n            e = {_eventname : \"TransferFromSuccess\"; sender : from; recipient : to; amount : tokens};\n            event e\n        | False =>\n            e = {_eventname : \"TransferFromFailure\"; sender : from; recipient : to; amount : Uint128 0};\n            event e\n        end\n    | None =>\n        e = {_eventname : \"TransferFromFailure\"; sender : from; recipient : to; amount : Uint128 0};\n        event e\n    end\n  | None =>\n\te = {_eventname : \"TransferFromFailure\"; sender : from; recipient : to; amount : Uint128 0};\n\tevent e\n  end\nend\n\ntransition Approve (spender : ByStr20, tokens : Uint128)\n  allowed[_sender][spender] := tokens;\n  e = {_eventname : \"ApproveSuccess\"; approver : _sender; spender : spender; amount : tokens};\n  event e\nend\n\ntransition Allowance (tokenOwner : ByStr20, spender : ByStr20)\n  spender_allowance <- allowed[tokenOwner][spender];\n  match spender_allowance with\n  | Some n =>\n      e = {_eventname : \"Allowance\"; owner : tokenOwner; spender : spender; amount : n};\n      event e\n  | None =>\n      e = {_eventname : \"Allowance\"; owner : tokenOwner; spender : spender; amount : Uint128 0};\n      event e\n  end\nend\n`;
+  </script>
+
+  <script>
+  var address = '';
+
+  window.addEventListener("load", () => {
+    if (!window.zilPay) {
+      $('.modal-body').html(`
+      <div class="row justify-content-md-center">
+        <img src="https://zilpay.xyz/img/icon.svg" height="300">
+        <h1 class="text-center">please install <a href="https://zilpay.xyz/">ZilPay</a></h1>
+      </div>
+        <pre id="tx" class="text-left"></pre>
+      `);
+      $('#txModal').modal();
+      return null;
+    } else if (!window.zilPay.isEnable) {
+      $('.modal-body').html(`
+      <div class="row justify-content-md-center">
+        <img src="https://zilpay.xyz/img/icon.svg" height="300">
+        <h1 class="text-center">please unlock zilPay</h1>
+      </div>
+        <pre id="tx" class="text-left"></pre>
+      `);
+      $('#txModal').modal();
+    }
+
+    window.zilPay.observableAccount().subscribe(account => {
+      $('#contractOwner')[0].value = window.zilPay.defaultAccount.address;
+    });
+  });
+
+  window.deploy = async () => {
+    const zilliqa = new window.Zilliqa();
+    const { units, Long, toChecksumAddress } = zilliqa.utils;
+    const code = window.code;
+    const init = [
+      {
+          "vname": "_scilla_version",
+          "type": "Uint32",
+          "value": "0"
+      },
+      {
+          "vname": "owner",
+          "type": "ByStr20",
+          "value":  $('#contractOwner')[0].value
+      },
+      {
+        "vname": "total_tokens",
+        "type": "Uint128",
+        "value": $('#total_tokens')[0].value
+      },
+      {
+        "vname": "decimals",
+        "type": "Uint32",
+        "value": $('#decimals')[0].value
+      },
+      {
+          "vname": "name",
+          "type": "String",
+          "value": $('#name')[0].value
+      },
+      {
+          "vname": "symbol",
+          "type": "String",
+          "value": $('#symbol')[0].value
+      },
+      {
+        "vname": "_creation_block",
+        "type": "BNum",
+        "value": "100"
+      }
+    ];
+    const contract = zilliqa.contracts.new(code, init);
+    const myGasPrice = units.toQa('1000', units.Units.Li);
+    const [deployTx, newContract] = await contract.deploy({
+      gasPrice: myGasPrice,
+      gasLimit: Long.fromNumber(10000)
+    });
+    $('#tx').html(JSON.stringify(deployTx, null, 4));
+    console.log(deployTx);
+    $('#txModal').modal();
+  }
+  </script>
+
+  <div class="modal fade bd-example-modal-xl" id="txModal" tabindex="-1" role="dialog" aria-labelledby="txModal" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="contractAddress">Transaction</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <pre id="tx" class="text-left"></pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

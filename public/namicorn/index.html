@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>unstoppable domains</title>
+  <link rel="shortcut icon" href="https://testnet.unstoppabledomains.com/favicon.ico">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</head>
+<body class="bg-secondary">
+
+  <nav class="navbar navbar-light" style="background: #2d3246;">
+    <a class="navbar-brand text-warning" href="/#dapps">
+      Unstoppable Domains
+    </a>
+
+    <div id="myaddress" class="text-warning">0xEEf22809B26479ce53F52A0849DbBDAd630E0F35</div>
+  </nav>
+
+  <div class="container text-center pt-5">
+    <h2 class="display-3">Zilliqa Name Service</h2>
+    <h2>search for and buy a .zil domain</h2>
+    <div class="row justify-content-md-center">
+
+      <div class="col-sm-12 input-group mb-3 p-5">
+        <input id="awesome-name" type="text" class="form-control rounded shadow-lg" placeholder="awesome-name.zil" aria-label="Recipient's username" aria-describedby="button-addon2">
+        <div class="input-group-append">
+          <button class="btn btn-primary rounded shadow-lg"
+                  type="button"
+                  id="button-addon2">search</button>
+        </div>
+      </div>
+
+      <div class="col-sm-3"></div>
+      <div class="col-sm jumbotron rounded shadow-lg">
+        <h1 class="display-4">Pay Name</h1>
+        
+        <div class="d-flex justify-content-between">
+          <div class="text-left">domain:</div>
+          <div class="ml-auto text-right">lalka.zil</div>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div class="text-left">Recipient:</div>
+          <div class="ml-auto text-right">
+            <a href="#">0x9d7...e2bef0</a>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div class="text-left">Cost:</div>
+          <div class="ml-auto text-right">0.001ZIL</div>
+        </div>
+        <hr class="my-4">
+        <a class="btn btn-primary btn-lg rounded shadow-lg"
+           onclick="claimZone()"
+           href="#" role="button">Buy</a>
+      </div>
+      <div class="col-sm-3"></div>
+
+    </div>
+
+    <pre id="tx" class="text-left"></pre>
+  </div>
+
+  <script>
+    var contract;
+    var zilliqa;
+
+    window.addEventListener("load", () => {
+        if (!window.zilPay) {
+          //
+          return null;
+        } else if (!window.zilPay.isEnable) {
+          //
+        }
+
+        zilliqa = new Zilliqa();
+        contract = zilliqa.contracts.at('9F01AE18D3F44AAA700207A2384608A808B3285A');
+        contract.getState().then(console.log);
+
+        window.zilPay.observableAccount().subscribe(account => {
+          $('#myaddress').text(window.zilPay.defaultAccount.address);
+          getState();
+        });
+        
+        getState();
+      });
+
+    async function claimZone() {
+      const utils = zilliqa.utils;
+      const gasPrice = utils.units.toQa(
+        '2000', utils.units.Units.Li
+      );
+      const domain = $('#awesome-name')[0].value;
+      console.log(domain);
+
+      const result = await contract.call(
+        "claimZone", [
+          {
+            vname: "label",
+            type: "String",
+            value: domain
+          },
+          {
+            vname: "new_owner",
+            type: "ByStr20",
+            value: zilPay.defaultAccount.address
+          }
+        ],
+        {
+          amount: new utils.BN(0),
+          gasPrice: gasPrice,
+          gasLimit: utils.Long.fromNumber(8000)
+        }
+      );
+      $('#tx').html(JSON.stringify(result, null, 4));
+      console.log(result);
+    }
+    
+  </script>
+</body>
+</html>
