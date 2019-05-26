@@ -96,7 +96,7 @@
     }
 
     window.zilPay.observableAccount().subscribe(account => {
-      $('#contractOwner')[0].value = window.zilPay.defaultAccount.address;
+      $('#contractOwner')[0].value = window.zilPay.defaultAccount.bech32;
     });
 
   });

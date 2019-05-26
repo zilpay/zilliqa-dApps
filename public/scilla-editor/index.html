@@ -25,7 +25,7 @@
 			<div id="scilla"
 					 class="col-lg-7"
 					 style="height:800px;"></div>
-			
+
 			<div id="initJson"
 					 class="col-sm-5"
 					 style="height:800px;"></div>
@@ -74,13 +74,13 @@
 			`);
 			$('#txModal').modal();
 		} else {
-			init[1]['value'] = zilPay.defaultAccount.address;
+			init[1]['value'] = zilPay.defaultAccount.bech32;
 		}
 
 		zilliqa = new Zilliqa();
 
 		window.zilPay.observableAccount().subscribe(account => {
-			init[1]['value'] = zilPay.defaultAccount.address;
+			init[1]['value'] = zilPay.defaultAccount.bech32;
 		});
 	});
 
@@ -161,7 +161,7 @@
 		const code = window.scillaEditor.getValue();
 		const init = JSON.parse(window.jsonEditor.getValue());
 		const zilliqa = new window.Zilliqa();
-		const { units, Long, toChecksumAddress } = zilliqa.utils;
+		const { units, Long, toBech32Address } = zilliqa.utils;
 		const contract = zilliqa.contracts.new(code, init);
 		const myGasPrice = units.toQa('1000', units.Units.Li);
 		const [deployTx, newContract] = await contract.deploy({
@@ -169,9 +169,9 @@
 			gasLimit: Long.fromNumber(10000)
 		});
 		console.log(deployTx);
-		
+
 		$('#tx').html(JSON.stringify(deployTx, null, 4));
-		$('.modal-title')[0].textContent = toChecksumAddress(newContract.address);
+		$('.modal-title')[0].textContent = toBech32Address(newContract.address);
 		$('#txModal').modal();
 	}
 </script>

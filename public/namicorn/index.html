@@ -36,7 +36,7 @@
       <div class="col-sm-3"></div>
       <div class="col-sm jumbotron rounded shadow-lg">
         <h1 class="display-4">Pay Name</h1>
-        
+
         <div class="d-flex justify-content-between">
           <div class="text-left">domain:</div>
           <div class="ml-auto text-right">lalka.zil</div>
@@ -80,10 +80,10 @@
         contract.getState().then(console.log);
 
         window.zilPay.observableAccount().subscribe(account => {
-          $('#myaddress').text(window.zilPay.defaultAccount.address);
+          $('#myaddress').text(window.zilPay.defaultAccount.bech32);
           getState();
         });
-        
+
         getState();
       });
 
@@ -117,7 +117,7 @@
       $('#tx').html(JSON.stringify(result, null, 4));
       console.log(result);
     }
-    
+
   </script>
 </body>
 </html>

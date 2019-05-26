@@ -52,15 +52,15 @@
         <p class="lead">This ZRC token is designed exclusively for testing purposes only.</p>
       </div>
     </div>
-    
+
 
     <script type="text/javascript">
-      const contractAddress = '1b9bee83a721b6e63ba4819d0c9ce2d16c521bd3';
+      const contractAddress = '0x1b9bEE83A721B6e63Ba4819D0c9ce2D16C521Bd3';
 
       $('#contract').html(`
-      contract: <a href="https://dev-explorer.zilliqa.com/address/${contractAddress}"
+      contract: <a href="https://viewblock.io/zilliqa/address/zil1rwd7aqa8yxmwvwaysxwse88z69k9yx7n47ehn6?network=testnet"
                             target="_blank"
-                            class="text-warning">${contractAddress}</a>
+                            class="text-warning">zil1rwd7aqa8yxmwvwaysxwse88z69k9yx7n47ehn6</a>
       `);
 
       async function getState() {
@@ -90,7 +90,7 @@
       async function Buy() {
         const amount = $('#forBuy')[0].value;
         const zilliqa = new window.Zilliqa();
-        const address = window.zilPay.defaultAccount.address;
+        const address = window.zilPay.defaultAccount.bech32;
         const utils = zilliqa.utils;
         const ZRC = zilliqa.contracts.at(contractAddress);
         const gasPrice = utils.units.toQa(
@@ -117,7 +117,7 @@
       async function Withdraw() {
         const amount = $('#forWisdraw')[0].value;
         const zilliqa = new window.Zilliqa();
-        const address = window.zilPay.defaultAccount.address;
+        const address = window.zilPay.defaultAccount.bech32;
         const utils = zilliqa.utils;
         const ZRC = zilliqa.contracts.at(contractAddress);
         const gasPrice = utils.units.toQa(
@@ -163,10 +163,10 @@
         }
 
         window.zilPay.observableAccount().subscribe(account => {
-          $('#myaddress').text(window.zilPay.defaultAccount.address);
+          $('#myaddress').text(window.zilPay.defaultAccount.bech32);
           getState();
         });
-        
+
         getState();
       });
     </script>
@@ -190,7 +190,7 @@
 			</div>
 		</div>
   </footer>
-  
+
 
   <div class="modal fade bd-example-modal-xl" id="txModal" tabindex="-1" role="dialog" aria-labelledby="txModal" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">

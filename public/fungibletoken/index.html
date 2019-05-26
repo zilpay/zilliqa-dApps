@@ -50,7 +50,7 @@
               <label for="decimals">Decimals</label>
               <input type="number" class="form-control" id="decimals" value="18">
             </div>
-            
+
             <button onclick="deploy()" type="button" class="btn btn-primary">Create</button>
           </div>
         </div>
@@ -107,7 +107,7 @@
     }
 
     window.zilPay.observableAccount().subscribe(account => {
-      $('#contractOwner')[0].value = window.zilPay.defaultAccount.address;
+      $('#contractOwner')[0].value = window.zilPay.defaultAccount.bech32;
     });
   });
 

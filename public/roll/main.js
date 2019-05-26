@@ -6,7 +6,7 @@ var contract;
 var currentHash;
 
 var rollValue = 51;
-var contractAddress = 'e8a997e359ac2a1e891dbdf7fc7558623bb0ead2';
+var contractAddress = '0xE8A997e359AC2A1e891dBDf7fc7558623bB0eaD2';
 
 var winAmount = 200;
 var amountZil = 100;
@@ -15,7 +15,7 @@ var amountZil = 100;
 $('input[type=range]').on('input', function () {
   $('#roll-view').html(this.value);
   rollValue = this.value;
-  
+
   winAmount = (max / rollValue) * amountZil;
 
   $('#amount')[0].value = amountZil;
@@ -24,7 +24,7 @@ $('input[type=range]').on('input', function () {
 
 $('#amount').on('input', function () {
   amountZil = this.value;
-  
+
   winAmount = (max / rollValue) * amountZil;
 
   $('#winAmount')[0].value = winAmount;
@@ -46,7 +46,7 @@ window.addEventListener("load", () => {
   contract = zilliqa.contracts.at(contractAddress);
 
   window.zilPay.observableAccount().subscribe(() => {
-    $('#myaddress').text(window.zilPay.defaultAccount.address);
+    $('#myaddress').text(window.zilPay.defaultAccount.bech32);
   });
   getState();
 });
@@ -116,7 +116,7 @@ async function roll() {
       gasLimit: utils.Long.fromNumber(9000)
     }
   );
-  
+
   $('body > div.container.mt-5 > div > div > div.form-group > button').hide();
   $('#spiner').show();
   currentHash = tx.TranID;
