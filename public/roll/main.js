@@ -45,11 +45,19 @@ window.addEventListener("load", () => {
   utils = zilliqa.utils;
   contract = zilliqa.contracts.at(contractAddress);
 
+  if (!zilPay.isConnect) {
+    connect();
+  }
+
   window.zilPay.observableAccount().subscribe(() => {
     $('#myaddress').text(window.zilPay.defaultAccount.bech32);
   });
   getState();
 });
+
+async function connect() {
+  await zilPay.connect();
+}
 
 function testZilPay() {
   if (!window.zilPay) {
@@ -70,6 +78,14 @@ function testZilPay() {
     `);
     $('#zilpayModal').modal();
     return 'lock';
+  } else if (zilPay.net !== 'testnet') {
+    $('#zilpayModal > div > div > div.modal-body').html(`
+    <div class="row justify-content-md-center">
+      <h1 class="text-center text-warning">Please change network</h1>
+      <img src="/img/network.png">
+    </div>
+    `);
+    $('#zilpayModal').modal();
   }
   return true;
 }

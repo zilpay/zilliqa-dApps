@@ -77,6 +77,10 @@
 			init[1]['value'] = zilPay.defaultAccount.bech32;
 		}
 
+		if (!window.zilPay.isConnect) {
+			window.zilPay.connect().then(console.log);
+		}
+
 		zilliqa = new Zilliqa();
 
 		window.zilPay.observableAccount().subscribe(account => {
