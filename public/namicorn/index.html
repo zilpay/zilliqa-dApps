@@ -71,20 +71,16 @@
         if (!window.zilPay) {
           //
           return null;
-        } else if (!window.zilPay.isEnable) {
+        } else if (!window.zilPay.wallet.isEnable) {
           //
         }
 
-        zilliqa = new Zilliqa();
-        contract = zilliqa.contracts.at('9F01AE18D3F44AAA700207A2384608A808B3285A');
-        contract.getState().then(console.log);
+        zilliqa = window.zilPay;
+        contract = zilliqa.contracts.at('zil1nuq6uxxn73925uqzq73rs3sg4qytx2z6emerwd');
 
-        window.zilPay.observableAccount().subscribe(account => {
-          $('#myaddress').text(window.zilPay.defaultAccount.bech32);
-          getState();
+        window.zilPay.wallet.observableAccount().subscribe(account => {
+          $('#myaddress').text(account.bech32);
         });
-
-        getState();
       });
 
     async function claimZone() {
@@ -105,7 +101,7 @@
           {
             vname: "new_owner",
             type: "ByStr20",
-            value: zilPay.defaultAccount.address
+            value: zilPay.wallet.defaultAccount.base16
           }
         ],
         {

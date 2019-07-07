@@ -34,29 +34,37 @@ $('#amount')[0].value = amountZil;
 $('#winAmount')[0].value = winAmount;
 
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   const test = testZilPay();
 
   if (!test) {
     return null;
   }
 
-  zilliqa = new Zilliqa();
-  utils = zilliqa.utils;
+  zilliqa = window.zilPay;
+  utils = zilPay.utils;
   contract = zilliqa.contracts.at(contractAddress);
 
-  if (!zilPay.isConnect) {
-    connect();
+  if (!zilPay.wallet.isConnect) {
+    const status = await connect();
+    console.log('status', status);
   }
 
-  window.zilPay.observableAccount().subscribe(() => {
-    $('#myaddress').text(window.zilPay.defaultAccount.bech32);
+  if (zilPay.wallet.isConnect) {
+    window.zilPay.wallet.observableAccount().subscribe(account => {
+      $('#myaddress').text(account.bech32);
+    });
+  }
+
+  window.zilPay.wallet.observableNetwork().subscribe(() => {
+    testZilPay();
   });
-  getState();
+
+  await getState();
 });
 
-async function connect() {
-  await zilPay.connect();
+function connect() {
+  return zilPay.wallet.connect();
 }
 
 function testZilPay() {
@@ -69,7 +77,7 @@ function testZilPay() {
     `);
     $('#zilpayModal').modal();
     return false;
-  } else if (!window.zilPay.isEnable) {
+  } else if (!window.zilPay.wallet.isEnable) {
     $('.modal-body').html(`
       <div class="row justify-content-md-center">
         <h1 class="text-center text-warning">Please unlock <a href="https://zilpay.xyz/">ZilPay</a></h1>
@@ -78,7 +86,7 @@ function testZilPay() {
     `);
     $('#zilpayModal').modal();
     return 'lock';
-  } else if (zilPay.net !== 'testnet') {
+  } else if (zilPay.wallet.net !== 'testnet') {
     $('#zilpayModal > div > div > div.modal-body').html(`
     <div class="row justify-content-md-center">
       <h1 class="text-center text-warning">Please change network</h1>
@@ -91,6 +99,7 @@ function testZilPay() {
 }
 
 async function getState() {
+  contract = zilliqa.contracts.at(contractAddress);
   let state = await contract.getState();
 
   state = state.filter(el => el.vname == '_balance');
@@ -118,8 +127,9 @@ async function roll() {
     utils.units.Units.Zil
   );
   const gasPrice = utils.units.toQa(
-    '5000', utils.units.Units.Li
+    '1000', utils.units.Units.Li
   );
+  contract = zilliqa.contracts.at(contractAddress);
   const tx = await contract.call(
     'Roll', [{
       vname: "rol",
@@ -136,15 +146,14 @@ async function roll() {
   $('body > div.container.mt-5 > div > div > div.form-group > button').hide();
   $('#spiner').show();
   currentHash = tx.TranID;
+  console.log(tx);
 
   let int = setInterval(async () => {
-    let zilliqa = new Zilliqa();
-    let utils = zilliqa.utils;
+    let utils = zilPay.utils;
 
-    zilliqa.blockchain
+    window.zilPay.blockchain
            .getTransaction(currentHash)
            .then(tx => {
-
               $('body > div.container.mt-5 > div > div > div.form-group > button').show();
               $('#spiner').hide();
 
@@ -169,7 +178,6 @@ async function roll() {
               </div>
               `);
               $('#zilpayModal').modal();
-              getState();
               clearInterval(int);
            })
            .catch(err => console.log(err));

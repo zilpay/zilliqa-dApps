@@ -64,7 +64,7 @@
 			`);
 			$('#txModal').modal();
 			return null;
-		} else if (!window.zilPay.isEnable) {
+		} else if (!window.zilPay.wallet.isEnable) {
 			$('.modal-body').html(`
 			<div class="row justify-content-md-center">
 				<img src="https://zilpay.xyz/img/icon.svg" height="300">
@@ -74,17 +74,17 @@
 			`);
 			$('#txModal').modal();
 		} else {
-			init[1]['value'] = zilPay.defaultAccount.bech32;
+			init[1]['value'] = zilPay.wallet.defaultAccount.bech32;
 		}
 
-		if (!window.zilPay.isConnect) {
-			window.zilPay.connect().then(console.log);
+		if (!window.zilPay.wallet.isConnect) {
+			window.zilPay.wallet.connect();
 		}
 
-		zilliqa = new Zilliqa();
+		zilliqa = window.zilPay;
 
-		window.zilPay.observableAccount().subscribe(account => {
-			init[1]['value'] = zilPay.defaultAccount.bech32;
+		window.zilPay.wallet.observableAccount().subscribe(account => {
+			init[1]['value'] = account.bech32;
 		});
 	});
 
@@ -164,7 +164,7 @@
 	window.deploy = async () => {
 		const code = window.scillaEditor.getValue();
 		const init = JSON.parse(window.jsonEditor.getValue());
-		const zilliqa = new window.Zilliqa();
+		const zilliqa = window.zilPay;
 		const { units, Long, toBech32Address } = zilliqa.utils;
 		const contract = zilliqa.contracts.new(code, init);
 		const myGasPrice = units.toQa('1000', units.Units.Li);

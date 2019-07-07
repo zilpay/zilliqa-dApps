@@ -73,7 +73,7 @@
   <script>
   var address = '';
 
-  window.addEventListener("load", () => {
+  window.addEventListener("load", async () => {
     if (!window.zilPay) {
       $('.modal-body').html(`
       <div class="row justify-content-md-center">
@@ -84,7 +84,7 @@
       `);
       $('#txModal').modal();
       return null;
-    } else if (!window.zilPay.isEnable) {
+    } else if (!window.zilPay.wallet.isEnable) {
       $('.modal-body').html(`
       <div class="row justify-content-md-center">
         <img src="https://zilpay.xyz/img/icon.svg" height="300">
@@ -96,18 +96,18 @@
     }
 
 
-		if (!window.zilPay.isConnect) {
-			window.zilPay.connect().then(console.log);
+		if (!window.zilPay.wallet.isConnect) {
+			await window.zilPay.wallet.connect();
 		}
 
-    window.zilPay.observableAccount().subscribe(account => {
-      $('#contractOwner')[0].value = window.zilPay.defaultAccount.bech32;
+    window.zilPay.wallet.observableAccount().subscribe(account => {
+      $('#contractOwner')[0].value = account.bech32;
     });
 
   });
 
   window.deploy = async () => {
-    const zilliqa = new window.Zilliqa();
+    const zilliqa = window.zilPay;
     const { units, Long, toChecksumAddress } = zilliqa.utils;
     const code = window.code;
     const init = [
